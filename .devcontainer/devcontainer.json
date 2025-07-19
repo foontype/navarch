@@ -1,0 +1,27 @@
+{
+  "name": "NAVARCH Development",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/eitsupi/devcontainer-features/bats:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "ms-vscode.vscode-json"
+      ]
+    }
+  },
+  "postCreateCommand": "bash -c 'echo \"Development container setup complete!\"'",
+  "remoteUser": "vscode"
+}
