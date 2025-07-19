@@ -6,17 +6,18 @@ NAVARCH.mdの設計に基づいて、Bashベースの単一スクリプトとし
 ## 実装フェーズ
 
 ### フェーズ1: 基本構造とコア機能
-**目標**: 基本的なCLIフレームワークとディレクティブパーサーの実装
+**目標**: 基本的なCLIフレームワークとディレクティブ関数システムの実装
 
 #### 1.1 プロジェクト構造の構築
 - `src/navarch`スクリプトファイルの作成
 - 基本的なCLIオプション解析機能の実装
 - ヘルプメッセージとバージョン表示機能の実装
 
-#### 1.2 atlas.navarchパーサーの実装
+#### 1.2 atlas.navarch処理エンジンの実装
 - `atlas.navarch`ファイルの検索機能
-- ディレクティブ関数（env、vendor、current）の定義
-- `atlas.navarch`の実行とディレクティブリストの収集
+- ディレクティブ関数（env、vendor、current）の動的定義
+- `atlas.navarch`のsource実行によるディレクティブ収集
+- 各ディレクティブ関数内でのリスト構築機能
 - 記述順序の保持機能
 
 #### 1.3 基本サブコマンドの実装
@@ -127,10 +128,10 @@ navarch/
 
 ### 主要なBash関数設計
 
-#### パーサー関数
-- `parse_atlas_navarch()`: atlas.navarchの解析
-- `extract_directives()`: ディレクティブの抽出
-- `build_dependency_tree()`: 依存関係ツリーの構築
+#### ディレクティブ処理関数
+- `define_directive_functions()`: env、vendor、current関数の動的定義
+- `source_atlas_navarch()`: atlas.navarchのsource実行
+- `build_dependency_tree()`: 収集されたディレクティブから依存関係ツリーを構築
 
 #### 実行エンジン関数
 - `execute_subcommand()`: サブコマンドの実行
