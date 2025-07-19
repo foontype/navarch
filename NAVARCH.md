@@ -170,8 +170,50 @@ clean() {
 - **内部実装**: ディレクティブ関数は単純なリスト構築処理
 - **再帰処理**: vendor/currentディレクトリのatlas.navarchも自動処理
 
+## 実装方式
+
+### Bash実装
+- **実装形式**: 単一のBashスクリプトファイル
+- **ファイル配置**: `src/navarch`
+- **実行可能**: `chmod +x src/navarch`で実行権限付与
+
+### ディレクトリ構造
+```
+project/
+├── src/
+│   └── navarch              # 単一のBashスクリプト実装
+├── tests/
+│   ├── test_navarch.bats    # Batsテストファイル
+│   ├── test_pull.bats       # pullコマンドテスト
+│   ├── test_build.bats      # buildコマンドテスト
+│   └── fixtures/            # テスト用データ
+└── README.md                # インストール手順含む
+```
+
+### テスト方式
+- **テストフレームワーク**: Bats (Bash Automated Testing System)
+- **テストファイル配置**: `tests/` ディレクトリ
+- **テスト実行**: `bats tests/` でテスト実行
+
+### インストール方式
+ワンライナーでのインストールを提供:
+
+```bash
+# インストールコマンド例
+curl -fsSL https://raw.githubusercontent.com/user/repo/main/install.sh | bash
+```
+
+インストールスクリプトの動作:
+1. `src/navarch`をダウンロード
+2. `/usr/local/bin/navarch`に配置
+3. 実行権限を付与
+4. PATH追加の案内表示
+
 ## 移行計画
 1. **Rev1からRev2への移行**: 既存のNAVARCH_PATH環境変数からatlas.navarchへの変換
 2. **キャッシュシステム実装**: .cache以下での依存関係管理機能
 3. **GitHub統合**: vendorディレクティブによるリポジトリダウンロード機能
 4. **再帰処理実装**: vendor/currentディレクトリ内のatlas.navarch自動検出・処理
+5. **Bash実装**: 単一ファイルでのCLI実装
+6. **テスト体制**: Batsによる自動テスト実装
+7. **インストール体制**: curlベースのワンライナーインストール実装
