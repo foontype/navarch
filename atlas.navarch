@@ -1,0 +1,25 @@
+# Test atlas.navarch file
+
+env .env
+env .env.local
+
+vendor https://github.com/octocat/Hello-World.git
+
+current ./local-project1
+current ../shared-project
+
+build() {
+    echo "Building main project"
+}
+
+up() {
+    echo "Starting main project"
+}
+
+down() {
+    echo "Stopping main project" 
+}
+
+clean() {
+    echo "Cleaning main project"
+}
