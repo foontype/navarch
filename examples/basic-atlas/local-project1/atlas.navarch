@@ -1,0 +1,23 @@
+# Local project sample atlas.navarch
+
+build() {
+    echo "Building local-project1"
+    echo "Creating sample output file..."
+    echo "Built at $(date)" > output.txt
+}
+
+up() {
+    echo "Starting local-project1"
+    echo "Local project is now running"
+}
+
+down() {
+    echo "Stopping local-project1"
+    echo "Local project stopped"
+}
+
+clean() {
+    echo "Cleaning local-project1"
+    rm -f output.txt
+    echo "Cleaned up output files"
+}
