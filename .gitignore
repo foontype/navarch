@@ -3,3 +3,5 @@
 !.claude/cache/.gitkeep
 .devcontainer/.env
 .vscode/
+examples/basic-atlas/*
+!examples/basic-atlas/atlas.navarch
