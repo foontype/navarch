@@ -21,4 +21,8 @@ echo "Installing shellcheck..."
 sudo apt-get update
 sudo apt-get install -y shellcheck
 
+# Add src directory to PATH for navarch command
+echo "Adding src directory to PATH..."
+echo 'export PATH="${PWD}/src:${PATH}"' >> "${HOME}/.bashrc"
+
 echo "Development container setup complete!"
