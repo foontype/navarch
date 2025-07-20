@@ -3,7 +3,7 @@ set -e
 
 echo "Setting up development environment..."
 
-# Setup claude permission
+# Setup ${HOME}/.claude directory
 echo "Setup claude directory permissions ..."
 sudo chown -R "$(id -u):$(id -g)" "${HOME}/.claude"
 sudo chmod -R 755 "${HOME}/.claude"
