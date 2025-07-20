@@ -24,9 +24,9 @@
   },
   "mounts": [
     {
-      "source": "claude-config",
+      "source": "${localWorkspaceFolder}/.claude/cache",
       "target": "/home/vscode/.claude",
-      "type": "volume"
+      "type": "bind"
     }
   ],
   "postCreateCommand": ".devcontainer/post-create-command.sh",
