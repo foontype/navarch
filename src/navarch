@@ -329,7 +329,7 @@ execute_subcommand() {
   fi
 
   # Return to original directory
-  cd "$original_dir"
+  cd "$original_dir" || return 1
   return 0
 }
 
@@ -466,6 +466,7 @@ main() {
         ;;
       --verbose)
         VERBOSE_MODE=1 # Reserved for future use
+        export VERBOSE_MODE
         shift
         ;;
       pull)
