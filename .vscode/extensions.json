@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "PKief.material-icon-theme",
+    "timonwong.shellcheck",
+    "foxundermoon.shell-format",
+    "mads-hartmann.bash-ide-vscode",
+    "bierner.markdown-mermaid",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "ms-azuretools.vscode-docker",
+    "eamodio.gitlens"
+  ]
+}

@@ -35,8 +35,20 @@
     "vscode": {
       "extensions": [
         "timonwong.shellcheck",
-        "ms-vscode.vscode-json"
-      ]
+        "ms-vscode.vscode-json",
+        "PKief.material-icon-theme",
+        "foxundermoon.shell-format",
+        "mads-hartmann.bash-ide-vscode",
+        "bierner.markdown-mermaid",
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "workbench.tree.indent": 20,
+        "workbench.iconTheme": "material-icon-theme"
+      }
     }
   }
  }
