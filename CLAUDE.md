@@ -61,6 +61,8 @@ The entire CLI is implemented in `src/navarch` - a single Bash script that:
 ## Git Workflow
 
 ### Creating Pull Requests
+**IMPORTANT: Never push directly to main branch. Always use feature branches.**
+
 1. Check existing PRs:
    ```
    mcp__github__list_pull_requests
