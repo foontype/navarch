@@ -47,7 +47,7 @@ jobs:
         shellcheck src/navarch
         
         # Format check (this will exit with error if formatting is needed)
-        shfmt -d -i 2 -ci src/navarch
+        shfmt -d -ci src/navarch
         
         # Run tests
         bats tests/test_navarch.bats
