@@ -1,5 +1,7 @@
 # NAVARCH CLI System
 
+[![Tests](https://github.com/foontype/navarch/actions/workflows/test.yml/badge.svg)](https://github.com/foontype/navarch/actions/workflows/test.yml)
+
 A Bash-based single script CLI system for managing atlas.navarch configurations.
 
 ## Features
