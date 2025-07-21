@@ -56,6 +56,22 @@ jobs:
       id: tag
       run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
     
+    - name: Verify NAVARCH_VERSION matches tag
+      run: |
+        TAG="${{ steps.tag.outputs.tag }}"
+        # Remove 'v' prefix from tag if present
+        VERSION="${TAG#v}"
+        
+        # Extract NAVARCH_VERSION from src/navarch
+        SCRIPT_VERSION=$(grep '^NAVARCH_VERSION=' src/navarch | cut -d'"' -f2)
+        
+        if [[ "$VERSION" != "$SCRIPT_VERSION" ]]; then
+          echo "Error: Tag version ($VERSION) does not match NAVARCH_VERSION in src/navarch ($SCRIPT_VERSION)"
+          exit 1
+        fi
+        
+        echo "Version check passed: Tag $TAG matches NAVARCH_VERSION $SCRIPT_VERSION"
+    
     - name: Extract release notes
       id: release_notes
       run: |
