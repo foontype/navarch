@@ -11,54 +11,54 @@ PROJECT_ROOT=""
 
 # Logging and error handling utilities
 log() {
-	local level="$1"
-	shift
-	echo "[$level] $*" >&2
+  local level="$1"
+  shift
+  echo "[$level] $*" >&2
 }
 
 error() {
-	log "ERROR" "$@"
-	exit 1
+  log "ERROR" "$@"
+  exit 1
 }
 
 warn() {
-	log "WARN" "$@"
+  log "WARN" "$@"
 }
 
 debug() {
-	[[ $DEBUG_MODE -eq 1 ]] && log "DEBUG" "$@"
+  [[ $DEBUG_MODE -eq 1 ]] && log "DEBUG" "$@"
 }
 
 # Path validation utilities
 validate_path() {
-	local path="$1"
-	[[ -n "$path" ]] || error "Path cannot be empty"
-	[[ "$path" != *".."* ]] || error "Path cannot contain '..' for security reasons"
-	return 0
+  local path="$1"
+  [[ -n "$path" ]] || error "Path cannot be empty"
+  [[ "$path" != *".."* ]] || error "Path cannot contain '..' for security reasons"
+  return 0
 }
 
 normalize_path() {
-	local path="$1"
-	if command -v realpath >/dev/null 2>&1; then
-		realpath -m "$path" 2>/dev/null || echo "$path"
-	else
-		echo "$path"
-	fi
+  local path="$1"
+  if command -v realpath >/dev/null 2>&1; then
+    realpath -m "$path" 2>/dev/null || echo "$path"
+  else
+    echo "$path"
+  fi
 }
 
 resolve_relative_path() {
-	local path="$1"
-	local base_dir="${2:-$PWD}"
-	if [[ "$path" = /* ]]; then
-		echo "$path"
-	else
-		normalize_path "$base_dir/$path"
-	fi
+  local path="$1"
+  local base_dir="${2:-$PWD}"
+  if [[ "$path" = /* ]]; then
+    echo "$path"
+  else
+    normalize_path "$base_dir/$path"
+  fi
 }
 
 # CLI control functions
 show_help() {
-	cat <<'EOF'
+  cat <<'EOF'
 NAVARCH CLI System v1.0.0
 
 USAGE:
@@ -83,424 +83,424 @@ EOF
 }
 
 show_version() {
-	echo "navarch $NAVARCH_VERSION"
+  echo "navarch $NAVARCH_VERSION"
 }
 
 # atlas.navarch processing engine
 find_atlas_navarch() {
-	local start_dir="${1:-$PROJECT_ROOT}"
-	local atlas_file="$start_dir/atlas.navarch"
+  local start_dir="${1:-$PROJECT_ROOT}"
+  local atlas_file="$start_dir/atlas.navarch"
 
-	debug "Looking for atlas.navarch in: $start_dir"
+  debug "Looking for atlas.navarch in: $start_dir"
 
-	if [[ -f "$atlas_file" ]]; then
-		debug "Found atlas.navarch: $atlas_file"
-		echo "$atlas_file"
-		return 0
-	else
-		debug "No atlas.navarch found in: $start_dir"
-		return 1
-	fi
+  if [[ -f "$atlas_file" ]]; then
+    debug "Found atlas.navarch: $atlas_file"
+    echo "$atlas_file"
+    return 0
+  else
+    debug "No atlas.navarch found in: $start_dir"
+    return 1
+  fi
 }
 
 define_directive_functions() {
-	debug "Defining directive functions"
+  debug "Defining directive functions"
 
-	# Clear existing lists
-	ENV_LIST=""
-	VENDOR_LIST=""
-	CURRENT_LIST=""
+  # Clear existing lists
+  ENV_LIST=""
+  VENDOR_LIST=""
+  CURRENT_LIST=""
 
-	# Define env() function to collect environment files
-	env() {
-		local env_file="$1"
-		debug "env() called with: $env_file"
-		if [[ -n "$ENV_LIST" ]]; then
-			ENV_LIST="$ENV_LIST $env_file"
-		else
-			ENV_LIST="$env_file"
-		fi
-	}
+  # Define env() function to collect environment files
+  env() {
+    local env_file="$1"
+    debug "env() called with: $env_file"
+    if [[ -n "$ENV_LIST" ]]; then
+      ENV_LIST="$ENV_LIST $env_file"
+    else
+      ENV_LIST="$env_file"
+    fi
+  }
 
-	# Define vendor() function to collect GitHub dependencies
-	vendor() {
-		local repo_url="$1"
-		debug "vendor() called with: $repo_url"
-		if [[ -n "$VENDOR_LIST" ]]; then
-			VENDOR_LIST="$VENDOR_LIST $repo_url"
-		else
-			VENDOR_LIST="$repo_url"
-		fi
-	}
+  # Define vendor() function to collect GitHub dependencies
+  vendor() {
+    local repo_url="$1"
+    debug "vendor() called with: $repo_url"
+    if [[ -n "$VENDOR_LIST" ]]; then
+      VENDOR_LIST="$VENDOR_LIST $repo_url"
+    else
+      VENDOR_LIST="$repo_url"
+    fi
+  }
 
-	# Define current() function to collect local dependencies
-	current() {
-		local local_path="$1"
-		debug "current() called with: $local_path"
-		if [[ -n "$CURRENT_LIST" ]]; then
-			CURRENT_LIST="$CURRENT_LIST $local_path"
-		else
-			CURRENT_LIST="$local_path"
-		fi
-	}
+  # Define current() function to collect local dependencies
+  current() {
+    local local_path="$1"
+    debug "current() called with: $local_path"
+    if [[ -n "$CURRENT_LIST" ]]; then
+      CURRENT_LIST="$CURRENT_LIST $local_path"
+    else
+      CURRENT_LIST="$local_path"
+    fi
+  }
 
-	debug "Directive functions defined"
+  debug "Directive functions defined"
 }
 
 # Repository and cache management
 parse_github_url() {
-	local repo_url="$1"
-	local repo_name=""
-	local repo_ref="main"
+  local repo_url="$1"
+  local repo_name=""
+  local repo_ref="main"
 
-	debug "Parsing GitHub URL: $repo_url"
+  debug "Parsing GitHub URL: $repo_url"
 
-	# Handle different URL formats:
-	# https://github.com/user/repo.git
-	# https://github.com/user/repo.git@branch
-	# https://github.com/user/repo.git@tag
-	# git@github.com:user/repo.git
+  # Handle different URL formats:
+  # https://github.com/user/repo.git
+  # https://github.com/user/repo.git@branch
+  # https://github.com/user/repo.git@tag
+  # git@github.com:user/repo.git
 
-	# Extract ref if present (after @)
-	if [[ "$repo_url" == *"@"* ]]; then
-		repo_ref="${repo_url##*@}"
-		repo_url="${repo_url%@*}"
-	fi
+  # Extract ref if present (after @)
+  if [[ "$repo_url" == *"@"* ]]; then
+    repo_ref="${repo_url##*@}"
+    repo_url="${repo_url%@*}"
+  fi
 
-	# Extract repository name from different URL formats
-	if [[ "$repo_url" =~ ^https://github\.com/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
-		local user="${BASH_REMATCH[1]}"
-		local repo="${BASH_REMATCH[2]}"
-		repo_name="${user}/${repo%.git}"
-	elif [[ "$repo_url" =~ ^git@github\.com:([^/]+)/([^/]+)(\.git)?/?$ ]]; then
-		local user="${BASH_REMATCH[1]}"
-		local repo="${BASH_REMATCH[2]}"
-		repo_name="${user}/${repo%.git}"
-	else
-		error "Invalid GitHub URL format: $repo_url"
-	fi
+  # Extract repository name from different URL formats
+  if [[ "$repo_url" =~ ^https://github\.com/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+    local user="${BASH_REMATCH[1]}"
+    local repo="${BASH_REMATCH[2]}"
+    repo_name="${user}/${repo%.git}"
+  elif [[ "$repo_url" =~ ^git@github\.com:([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+    local user="${BASH_REMATCH[1]}"
+    local repo="${BASH_REMATCH[2]}"
+    repo_name="${user}/${repo%.git}"
+  else
+    error "Invalid GitHub URL format: $repo_url"
+  fi
 
-	debug "Parsed - repo: $repo_name, ref: $repo_ref"
-	echo "$repo_name|$repo_ref"
+  debug "Parsed - repo: $repo_name, ref: $repo_ref"
+  echo "$repo_name|$repo_ref"
 }
 
 create_cache_dir() {
-	local cache_root="$PROJECT_ROOT/.cache"
+  local cache_root="$PROJECT_ROOT/.cache"
 
-	debug "Creating cache directory structure at: $cache_root"
+  debug "Creating cache directory structure at: $cache_root"
 
-	if ! mkdir -p "$cache_root"; then
-		error "Failed to create cache directory: $cache_root"
-	fi
+  if ! mkdir -p "$cache_root"; then
+    error "Failed to create cache directory: $cache_root"
+  fi
 
-	echo "$cache_root"
+  echo "$cache_root"
 }
 
 clone_repository() {
-	local repo_url="$1"
-	local cache_dir="$2"
+  local repo_url="$1"
+  local cache_dir="$2"
 
-	debug "Cloning repository: $repo_url to $cache_dir"
+  debug "Cloning repository: $repo_url to $cache_dir"
 
-	# Parse the GitHub URL
-	local parsed
-	parsed=$(parse_github_url "$repo_url")
-	local repo_name="${parsed%|*}"
-	local repo_ref="${parsed#*|}"
+  # Parse the GitHub URL
+  local parsed
+  parsed=$(parse_github_url "$repo_url")
+  local repo_name="${parsed%|*}"
+  local repo_ref="${parsed#*|}"
 
-	local target_dir="$cache_dir/$repo_name"
+  local target_dir="$cache_dir/$repo_name"
 
-	# Create directory structure
-	local parent_dir
-	parent_dir="$(dirname "$target_dir")"
-	if ! mkdir -p "$parent_dir"; then
-		error "Failed to create directory: $parent_dir"
-	fi
+  # Create directory structure
+  local parent_dir
+  parent_dir="$(dirname "$target_dir")"
+  if ! mkdir -p "$parent_dir"; then
+    error "Failed to create directory: $parent_dir"
+  fi
 
-	# Clone or update repository
-	if [[ -d "$target_dir/.git" ]]; then
-		log "INFO" "Updating existing repository: $repo_name"
-		if ! (cd "$target_dir" && git fetch --all && git checkout "$repo_ref" && git pull origin "$repo_ref"); then
-			warn "Failed to update repository: $repo_name, attempting fresh clone"
-			rm -rf "$target_dir"
-			clone_fresh_repository "$repo_url" "$target_dir" "$repo_ref"
-		fi
-	else
-		clone_fresh_repository "$repo_url" "$target_dir" "$repo_ref"
-	fi
+  # Clone or update repository
+  if [[ -d "$target_dir/.git" ]]; then
+    log "INFO" "Updating existing repository: $repo_name"
+    if ! (cd "$target_dir" && git fetch --all && git checkout "$repo_ref" && git pull origin "$repo_ref"); then
+      warn "Failed to update repository: $repo_name, attempting fresh clone"
+      rm -rf "$target_dir"
+      clone_fresh_repository "$repo_url" "$target_dir" "$repo_ref"
+    fi
+  else
+    clone_fresh_repository "$repo_url" "$target_dir" "$repo_ref"
+  fi
 
-	echo "$target_dir"
+  echo "$target_dir"
 }
 
 clone_fresh_repository() {
-	local repo_url="$1"
-	local target_dir="$2"
-	local repo_ref="$3"
+  local repo_url="$1"
+  local target_dir="$2"
+  local repo_ref="$3"
 
-	# Remove .git suffix for cloning
-	local clean_url="${repo_url%.git}"
+  # Remove .git suffix for cloning
+  local clean_url="${repo_url%.git}"
 
-	log "INFO" "Cloning fresh repository: $clean_url"
+  log "INFO" "Cloning fresh repository: $clean_url"
 
-	if ! git clone "$clean_url.git" "$target_dir"; then
-		error "Failed to clone repository: $repo_url"
-	fi
+  if ! git clone "$clean_url.git" "$target_dir"; then
+    error "Failed to clone repository: $repo_url"
+  fi
 
-	# Checkout specific reference if not main
-	if [[ "$repo_ref" != "main" ]]; then
-		if ! (cd "$target_dir" && git checkout "$repo_ref"); then
-			error "Failed to checkout ref '$repo_ref' in repository: $repo_url"
-		fi
-	fi
+  # Checkout specific reference if not main
+  if [[ "$repo_ref" != "main" ]]; then
+    if ! (cd "$target_dir" && git checkout "$repo_ref"); then
+      error "Failed to checkout ref '$repo_ref' in repository: $repo_url"
+    fi
+  fi
 }
 
 source_atlas_navarch() {
-	local atlas_file="$1"
+  local atlas_file="$1"
 
-	debug "Sourcing atlas.navarch: $atlas_file"
+  debug "Sourcing atlas.navarch: $atlas_file"
 
-	# Define directive functions before sourcing
-	define_directive_functions
+  # Define directive functions before sourcing
+  define_directive_functions
 
-	# Source the atlas.navarch file in a subshell to isolate it
-	# shellcheck disable=SC1090
-	if ! source "$atlas_file"; then
-		error "Failed to source atlas.navarch: $atlas_file"
-	fi
+  # Source the atlas.navarch file in a subshell to isolate it
+  # shellcheck disable=SC1090
+  if ! source "$atlas_file"; then
+    error "Failed to source atlas.navarch: $atlas_file"
+  fi
 
-	debug "Successfully sourced atlas.navarch"
-	debug "ENV_LIST: $ENV_LIST"
-	debug "VENDOR_LIST: $VENDOR_LIST"
-	debug "CURRENT_LIST: $CURRENT_LIST"
+  debug "Successfully sourced atlas.navarch"
+  debug "ENV_LIST: $ENV_LIST"
+  debug "VENDOR_LIST: $VENDOR_LIST"
+  debug "CURRENT_LIST: $CURRENT_LIST"
 }
 
 # Function execution engine
 load_functions() {
-	local atlas_file="$1"
-	local subcommand="$2"
+  local atlas_file="$1"
+  local subcommand="$2"
 
-	debug "Loading $subcommand function from: $atlas_file"
+  debug "Loading $subcommand function from: $atlas_file"
 
-	# Define directive functions to prevent errors when sourcing
-	define_directive_functions
+  # Define directive functions to prevent errors when sourcing
+  define_directive_functions
 
-	# Source the file again to get function definitions
-	# We need to do this in the current shell context
-	# shellcheck disable=SC1090
-	if ! source "$atlas_file"; then
-		error "Failed to source atlas.navarch: $atlas_file"
-	fi
+  # Source the file again to get function definitions
+  # We need to do this in the current shell context
+  # shellcheck disable=SC1090
+  if ! source "$atlas_file"; then
+    error "Failed to source atlas.navarch: $atlas_file"
+  fi
 
-	# Check if the function exists
-	if declare -f "$subcommand" >/dev/null 2>&1; then
-		debug "Function '$subcommand' found in $atlas_file"
-		return 0
-	else
-		debug "Function '$subcommand' not found in $atlas_file"
-		return 1
-	fi
+  # Check if the function exists
+  if declare -f "$subcommand" >/dev/null 2>&1; then
+    debug "Function '$subcommand' found in $atlas_file"
+    return 0
+  else
+    debug "Function '$subcommand' not found in $atlas_file"
+    return 1
+  fi
 }
 
 execute_subcommand() {
-	local subcommand="$1"
-	local atlas_file="$2"
-	local project_dir
-	project_dir="$(dirname "$atlas_file")"
+  local subcommand="$1"
+  local atlas_file="$2"
+  local project_dir
+  project_dir="$(dirname "$atlas_file")"
 
-	log "INFO" "Executing $subcommand in: $project_dir"
+  log "INFO" "Executing $subcommand in: $project_dir"
 
-	# Change to project directory
-	local original_dir="$PWD"
-	if ! cd "$project_dir"; then
-		error "Failed to change to directory: $project_dir"
-	fi
+  # Change to project directory
+  local original_dir="$PWD"
+  if ! cd "$project_dir"; then
+    error "Failed to change to directory: $project_dir"
+  fi
 
-	# Load and execute the function
-	if load_functions "$atlas_file" "$subcommand"; then
-		debug "Executing function: $subcommand"
-		if ! "$subcommand"; then
-			warn "Function '$subcommand' failed in: $project_dir"
-			cd "$original_dir" || return 1
-			return 1
-		fi
-		log "INFO" "Successfully executed $subcommand in: $project_dir"
-	else
-		debug "No '$subcommand' function found in: $atlas_file"
-	fi
+  # Load and execute the function
+  if load_functions "$atlas_file" "$subcommand"; then
+    debug "Executing function: $subcommand"
+    if ! "$subcommand"; then
+      warn "Function '$subcommand' failed in: $project_dir"
+      cd "$original_dir" || return 1
+      return 1
+    fi
+    log "INFO" "Successfully executed $subcommand in: $project_dir"
+  else
+    debug "No '$subcommand' function found in: $atlas_file"
+  fi
 
-	# Return to original directory
-	cd "$original_dir" || return 1
-	return 0
+  # Return to original directory
+  cd "$original_dir" || return 1
+  return 0
 }
 
 # Subcommand implementations (placeholders for now)
 cmd_pull() {
-	debug "Starting pull command"
+  debug "Starting pull command"
 
-	# Find atlas.navarch file
-	local atlas_file
-	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
-		log "INFO" "Found atlas.navarch: $atlas_file"
+  # Find atlas.navarch file
+  local atlas_file
+  if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+    log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Process the atlas.navarch file
-		source_atlas_navarch "$atlas_file"
+    # Process the atlas.navarch file
+    source_atlas_navarch "$atlas_file"
 
-		# Show what we collected
-		if [[ -n "$ENV_LIST" ]]; then
-			log "INFO" "Environment files: $ENV_LIST"
-		fi
+    # Show what we collected
+    if [[ -n "$ENV_LIST" ]]; then
+      log "INFO" "Environment files: $ENV_LIST"
+    fi
 
-		if [[ -n "$VENDOR_LIST" ]]; then
-			log "INFO" "Vendor repositories: $VENDOR_LIST"
+    if [[ -n "$VENDOR_LIST" ]]; then
+      log "INFO" "Vendor repositories: $VENDOR_LIST"
 
-			# Create cache directory
-			local cache_dir
-			cache_dir=$(create_cache_dir)
+      # Create cache directory
+      local cache_dir
+      cache_dir=$(create_cache_dir)
 
-			# Pull each vendor repository
-			for repo_url in $VENDOR_LIST; do
-				log "INFO" "Pulling repository: $repo_url"
-				if clone_repository "$repo_url" "$cache_dir"; then
-					log "INFO" "Successfully pulled: $repo_url"
-				else
-					error "Failed to pull repository: $repo_url"
-				fi
-			done
-		fi
+      # Pull each vendor repository
+      for repo_url in $VENDOR_LIST; do
+        log "INFO" "Pulling repository: $repo_url"
+        if clone_repository "$repo_url" "$cache_dir"; then
+          log "INFO" "Successfully pulled: $repo_url"
+        else
+          error "Failed to pull repository: $repo_url"
+        fi
+      done
+    fi
 
-		if [[ -n "$CURRENT_LIST" ]]; then
-			log "INFO" "Current projects: $CURRENT_LIST"
-		fi
+    if [[ -n "$CURRENT_LIST" ]]; then
+      log "INFO" "Current projects: $CURRENT_LIST"
+    fi
 
-	else
-		error "No atlas.navarch file found in current directory"
-	fi
+  else
+    error "No atlas.navarch file found in current directory"
+  fi
 }
 
 cmd_build() {
-	debug "Starting build command"
+  debug "Starting build command"
 
-	# Find atlas.navarch file
-	local atlas_file
-	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
-		log "INFO" "Found atlas.navarch: $atlas_file"
+  # Find atlas.navarch file
+  local atlas_file
+  if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+    log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute build function in current project
-		execute_subcommand "build" "$atlas_file"
+    # Execute build function in current project
+    execute_subcommand "build" "$atlas_file"
 
-		# TODO: Process vendor dependencies and execute their build functions
-		# TODO: Process current dependencies and execute their build functions
+    # TODO: Process vendor dependencies and execute their build functions
+    # TODO: Process current dependencies and execute their build functions
 
-	else
-		error "No atlas.navarch file found in current directory"
-	fi
+  else
+    error "No atlas.navarch file found in current directory"
+  fi
 }
 
 cmd_up() {
-	debug "Starting up command"
+  debug "Starting up command"
 
-	# Find atlas.navarch file
-	local atlas_file
-	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
-		log "INFO" "Found atlas.navarch: $atlas_file"
+  # Find atlas.navarch file
+  local atlas_file
+  if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+    log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute up function in current project
-		execute_subcommand "up" "$atlas_file"
+    # Execute up function in current project
+    execute_subcommand "up" "$atlas_file"
 
-	else
-		error "No atlas.navarch file found in current directory"
-	fi
+  else
+    error "No atlas.navarch file found in current directory"
+  fi
 }
 
 cmd_down() {
-	debug "Starting down command"
+  debug "Starting down command"
 
-	# Find atlas.navarch file
-	local atlas_file
-	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
-		log "INFO" "Found atlas.navarch: $atlas_file"
+  # Find atlas.navarch file
+  local atlas_file
+  if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+    log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute down function in current project
-		execute_subcommand "down" "$atlas_file"
+    # Execute down function in current project
+    execute_subcommand "down" "$atlas_file"
 
-	else
-		error "No atlas.navarch file found in current directory"
-	fi
+  else
+    error "No atlas.navarch file found in current directory"
+  fi
 }
 
 cmd_clean() {
-	debug "Starting clean command"
+  debug "Starting clean command"
 
-	# Find atlas.navarch file
-	local atlas_file
-	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
-		log "INFO" "Found atlas.navarch: $atlas_file"
+  # Find atlas.navarch file
+  local atlas_file
+  if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+    log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute clean function in current project
-		execute_subcommand "clean" "$atlas_file"
+    # Execute clean function in current project
+    execute_subcommand "clean" "$atlas_file"
 
-	else
-		error "No atlas.navarch file found in current directory"
-	fi
+  else
+    error "No atlas.navarch file found in current directory"
+  fi
 }
 
 # Main entry point
 main() {
-	PROJECT_ROOT="$(pwd)"
-	debug "Starting navarch in directory: $PROJECT_ROOT"
+  PROJECT_ROOT="$(pwd)"
+  debug "Starting navarch in directory: $PROJECT_ROOT"
 
-	# Parse command line arguments
-	while [[ $# -gt 0 ]]; do
-		case $1 in
-		-h | --help)
-			show_help
-			return 0
-			;;
-		-v | --version)
-			show_version
-			return 0
-			;;
-		-d | --debug)
-			DEBUG_MODE=1
-			shift
-			;;
-		--verbose)
-			VERBOSE_MODE=1 # Reserved for future use
-			export VERBOSE_MODE
-			shift
-			;;
-		pull)
-			cmd_pull
-			return 0
-			;;
-		build)
-			cmd_build
-			return 0
-			;;
-		up)
-			cmd_up
-			return 0
-			;;
-		down)
-			cmd_down
-			return 0
-			;;
-		clean)
-			cmd_clean
-			return 0
-			;;
-		*)
-			error "Unknown option: $1"
-			;;
-		esac
-	done
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -h | --help)
+        show_help
+        return 0
+        ;;
+      -v | --version)
+        show_version
+        return 0
+        ;;
+      -d | --debug)
+        DEBUG_MODE=1
+        shift
+        ;;
+      --verbose)
+        VERBOSE_MODE=1 # Reserved for future use
+        export VERBOSE_MODE
+        shift
+        ;;
+      pull)
+        cmd_pull
+        return 0
+        ;;
+      build)
+        cmd_build
+        return 0
+        ;;
+      up)
+        cmd_up
+        return 0
+        ;;
+      down)
+        cmd_down
+        return 0
+        ;;
+      clean)
+        cmd_clean
+        return 0
+        ;;
+      *)
+        error "Unknown option: $1"
+        ;;
+    esac
+  done
 
-	# If no arguments provided, show help
-	show_help
-	return 1
+  # If no arguments provided, show help
+  show_help
+  return 1
 }
 
 # Execute main function if script is run directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-	main "$@"
+  main "$@"
 fi
