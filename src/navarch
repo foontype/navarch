@@ -129,10 +129,28 @@ define_directive_functions() {
 	vendor() {
 		local repo_url="$1"
 		debug "vendor() called with: $repo_url"
+		
+		# Calculate future directory path
+		local parsed
+		parsed=$(parse_github_url "$repo_url")
+		local repo_name="${parsed%|*}"
+		local cache_dir="$PROJECT_ROOT/.cache"
+		local future_dir="$cache_dir/$repo_name"
+		
+		debug "vendor() calculated directory: $future_dir"
+		
+		# Add to URL list
 		if [[ -n "$VENDOR_LIST" ]]; then
 			VENDOR_LIST="$VENDOR_LIST $repo_url"
 		else
 			VENDOR_LIST="$repo_url"
+		fi
+		
+		# Add to directory list
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			VENDOR_DIRS="$VENDOR_DIRS $future_dir"
+		else
+			VENDOR_DIRS="$future_dir"
 		fi
 	}
 
@@ -372,24 +390,15 @@ cmd_pull() {
 			local cache_dir
 			cache_dir=$(create_cache_dir)
 
-			# Pull each vendor repository and collect checkout directories
+			# Pull each vendor repository
 			for repo_url in $VENDOR_LIST; do
 				log "INFO" "Pulling repository: $repo_url"
-				local checkout_dir
-				if checkout_dir=$(clone_repository "$repo_url" "$cache_dir"); then
-					log "INFO" "Successfully pulled: $repo_url to $checkout_dir"
-					# Add checkout directory to VENDOR_DIRS
-					if [[ -n "$VENDOR_DIRS" ]]; then
-						VENDOR_DIRS="$VENDOR_DIRS $checkout_dir"
-					else
-						VENDOR_DIRS="$checkout_dir"
-					fi
+				if clone_repository "$repo_url" "$cache_dir"; then
+					log "INFO" "Successfully pulled: $repo_url"
 				else
 					error "Failed to pull repository: $repo_url"
 				fi
 			done
-			
-			debug "VENDOR_DIRS: $VENDOR_DIRS"
 		fi
 
 		if [[ -n "$CURRENT_LIST" ]]; then
