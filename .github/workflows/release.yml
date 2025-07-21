@@ -75,11 +75,12 @@ jobs:
     - name: Extract release notes
       id: release_notes
       run: |
-        if ! yq eval "has(\"${{ steps.tag.outputs.tag }}\")" release-notes.yml | grep -q true; then
-          echo "Error: No release notes found for tag ${{ steps.tag.outputs.tag }}"
+        TAG="${{ steps.tag.outputs.tag }}"
+        if ! yq eval "has(\"$TAG\")" release-notes.yml | grep -q true; then
+          echo "Error: No release notes found for tag $TAG"
           exit 1
         fi
-        yq eval ".${{ steps.tag.outputs.tag }}" release-notes.yml > release_notes.txt
+        yq eval ".\"$TAG\"" release-notes.yml > release_notes.txt
     
     - name: Create release package
       run: |
