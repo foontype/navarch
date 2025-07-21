@@ -1,0 +1,30 @@
+v0.0.1: |
+  Initial release of NAVARCH - A Bash-based CLI system for managing project dependencies and configurations.
+
+  ## Features
+  - Single script architecture for simplicity and portability
+  - Support for `atlas.navarch` configuration files
+  - Vendor dependency management with GitHub repository support
+  - Intelligent caching system for vendor dependencies
+  - Lifecycle functions: build, up, down, clean
+  - Environment variable loading from files
+  - Local directory inclusion support
+  - POSIX compatible with Bash 4.0+ requirement
+
+  ## Components
+  - Main CLI script: `src/navarch`
+  - Comprehensive test suite using BATS
+  - Example configuration: `atlas.navarch`
+  - Development tools integration (ShellCheck, shfmt)
+
+  ## Installation
+  ```bash
+  # Download and install
+  curl -sSL https://raw.githubusercontent.com/foontype/navarch/main/install.sh | bash
+  
+  # Or manual installation
+  chmod +x src/navarch
+  ln -s $(pwd)/src/navarch ~/.local/bin/navarch
+  ```
+
+  This is the foundational release establishing the core architecture and functionality of NAVARCH.

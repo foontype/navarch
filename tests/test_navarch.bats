@@ -35,7 +35,7 @@ teardown() {
 @test "navarch --version shows version" {
     run ./navarch --version
     [ "$status" -eq 0 ]
-    [[ "$output" == "navarch 1.0.0" ]]
+    [[ "$output" == "navarch 0.0.1" ]]
 }
 
 @test "navarch fails without atlas.navarch file" {
