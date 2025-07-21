@@ -27,7 +27,7 @@ jobs:
         sudo apt-get install -y shellcheck
         
         # Install shfmt for formatting check
-        GO_VERSION="1.21"
+        GO_VERSION="1.23"
         wget -O go.tar.gz "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz"
         sudo tar -C /usr/local -xzf go.tar.gz
         export PATH="/usr/local/go/bin:$PATH"
