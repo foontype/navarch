@@ -85,17 +85,8 @@ jobs:
       run: |
         mkdir -p release-package
         
-        # Copy main script
+        # Copy main script (the only essential file)
         cp src/navarch release-package/
-        
-        # Copy documentation
-        cp README.md release-package/
-        
-        # Copy example configuration
-        cp atlas.navarch release-package/
-        
-        # Copy install script
-        cp install.sh release-package/
         
         # Create release archive
         cd release-package
