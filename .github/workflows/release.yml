@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        # Install yq for YAML parsing
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+        
+        # Install shellcheck for linting
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+        
+        # Install shfmt for formatting check
+        GO_VERSION="1.21"
+        wget -O go.tar.gz "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+        sudo tar -C /usr/local -xzf go.tar.gz
+        export PATH="/usr/local/go/bin:$PATH"
+        go install mvdan.cc/sh/v3/cmd/shfmt@latest
+        echo "/home/runner/go/bin" >> $GITHUB_PATH
+        
+        # Install bats for testing
+        git clone https://github.com/bats-core/bats-core.git
+        cd bats-core
+        sudo ./install.sh /usr/local
+        cd ..
+        rm -rf bats-core
+    
+    - name: Run quality checks
+      run: |
+        # Lint bash scripts
+        shellcheck src/navarch
+        
+        # Format check (this will exit with error if formatting is needed)
+        shfmt -d src/navarch
+        
+        # Run tests
+        bats tests/test_navarch.bats
+    
+    - name: Extract tag name
+      id: tag
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Extract release notes
+      id: release_notes
+      run: |
+        if ! yq eval "has(\"${{ steps.tag.outputs.tag }}\")" release-notes.yml | grep -q true; then
+          echo "Error: No release notes found for tag ${{ steps.tag.outputs.tag }}"
+          exit 1
+        fi
+        yq eval ".${{ steps.tag.outputs.tag }}" release-notes.yml > release_notes.txt
+    
+    - name: Create release package
+      run: |
+        mkdir -p release-package
+        
+        # Copy main script
+        cp src/navarch release-package/
+        
+        # Copy documentation
+        cp README.md release-package/
+        
+        # Copy example configuration
+        cp atlas.navarch release-package/
+        
+        # Copy install script
+        cp install.sh release-package/
+        
+        # Create release archive
+        cd release-package
+        zip -r ../navarch-${{ steps.tag.outputs.tag }}.zip .
+        cd ..
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        body_path: release_notes.txt
+        files: navarch-${{ steps.tag.outputs.tag }}.zip
+        draft: false
+        prerelease: false

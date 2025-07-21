@@ -4,7 +4,7 @@
 # A Bash-based single script CLI system for managing atlas.navarch configurations
 
 # Global variables
-NAVARCH_VERSION="1.0.0"
+NAVARCH_VERSION="0.0.1"
 DEBUG_MODE=0
 VERBOSE_MODE=0
 PROJECT_ROOT=""
