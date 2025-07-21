@@ -51,4 +51,4 @@ jobs:
       - name: Check shell script formatting
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          shfmt -d -i 2 -ci src/navarch
+          shfmt -d -ci src/navarch
