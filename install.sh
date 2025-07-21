@@ -7,7 +7,7 @@ set -euo pipefail
 # Configuration
 INSTALL_DIR="/usr/local/bin"
 SCRIPT_NAME="navarch"
-REPO_URL="https://raw.githubusercontent.com/your-org/navarch/main/src/navarch"
+REPO_URL="https://raw.githubusercontent.com/foontype/navarch/main/src/navarch"
 
 # Colors for output
 RED='\033[0;31m'
