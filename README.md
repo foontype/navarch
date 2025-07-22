@@ -10,6 +10,7 @@ A Bash-based single script CLI system for managing atlas.navarch configurations.
 - **Execute Commands**: Run build, up, down, and clean functions defined in atlas.navarch files
 - **Environment Management**: Load environment variables from specified files
 - **Local Dependencies**: Support for local project dependencies with `current` directives
+- **Plugin System**: Load external Bash functions from separate files with `plugin` directives
 - **Caching**: Intelligent caching of vendor repositories in `.cache` directory
 - **POSIX Compatible**: Works with standard Bash (version 4.0+)
 
@@ -87,9 +88,15 @@ vendor https://github.com/user/repo.git@v1.0.0
 current ./local-project
 current ../shared-project
 
+# Plugin files with shared functions
+plugin lib/helpers.sh
+plugin scripts/database.sh
+
 # Build function
 build() {
     echo "Building main project"
+    # Use function from plugin
+    setup_environment
     npm install
     npm run build
 }
@@ -118,7 +125,10 @@ clean() {
 ```
 project/
 ├── atlas.navarch          # Main configuration file
-├── .cache/                 # Vendor dependencies cache
+├── lib/                   # Plugin files directory
+│   ├── helpers.sh         # Shared utility functions
+│   └── database.sh        # Database-related functions
+├── .cache/                # Vendor dependencies cache
 │   ├── user1/repo1/       # Cached repository
 │   └── user2/repo2/       # Another cached repository
 ├── .env                   # Environment variables
@@ -150,6 +160,40 @@ Include local directories as dependencies.
 ```bash
 current ./local-project
 current ../shared-library
+```
+
+### plugin
+Load external Bash functions from separate files. Plugin files are loaded before subcommand execution, making their functions available in atlas.navarch lifecycle functions.
+
+```bash
+plugin lib/helpers.sh
+plugin utils/database.sh
+plugin ../shared/common.sh
+```
+
+Plugin files can contain any valid Bash functions:
+
+```bash
+# lib/helpers.sh
+setup_environment() {
+    echo "Setting up build environment..."
+    export NODE_ENV=production
+}
+
+compile_assets() {
+    echo "Compiling frontend assets..."
+    npm run build:assets
+}
+```
+
+These functions can then be used in your atlas.navarch lifecycle functions:
+
+```bash
+build() {
+    setup_environment
+    compile_assets  
+    echo "Build complete"
+}
 ```
 
 ## Testing
