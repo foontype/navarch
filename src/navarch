@@ -129,23 +129,23 @@ define_directive_functions() {
 	vendor() {
 		local repo_url="$1"
 		debug "vendor() called with: $repo_url"
-		
+
 		# Calculate future directory path
 		local parsed
 		parsed=$(parse_github_url "$repo_url")
 		local repo_name="${parsed%|*}"
 		local cache_dir="$PROJECT_ROOT/.cache"
 		local future_dir="$cache_dir/$repo_name"
-		
+
 		debug "vendor() calculated directory: $future_dir"
-		
+
 		# Add to URL list
 		if [[ -n "$VENDOR_LIST" ]]; then
 			VENDOR_LIST="$VENDOR_LIST $repo_url"
 		else
 			VENDOR_LIST="$repo_url"
 		fi
-		
+
 		# Add to directory list
 		if [[ -n "$VENDOR_DIRS" ]]; then
 			VENDOR_DIRS="$VENDOR_DIRS $future_dir"
@@ -158,13 +158,13 @@ define_directive_functions() {
 	current() {
 		local local_path="$1"
 		debug "current() called with: $local_path"
-		
+
 		# Resolve the path relative to the PROJECT_ROOT directory
 		local resolved_path
 		resolved_path=$(resolve_relative_path "$local_path" "$PROJECT_ROOT")
-		
+
 		debug "current() resolved path: $resolved_path"
-		
+
 		# Add to both lists - raw path for compatibility, resolved path for execution
 		if [[ -n "$CURRENT_LIST" ]]; then
 			CURRENT_LIST="$CURRENT_LIST $local_path"
@@ -486,46 +486,46 @@ main() {
 	# Parse command line arguments
 	while [[ $# -gt 0 ]]; do
 		case $1 in
-			-h | --help)
-				show_help
-				return 0
-				;;
-			-v | --version)
-				show_version
-				return 0
-				;;
-			-d | --debug)
-				DEBUG_MODE=1
-				shift
-				;;
-			--verbose)
-				VERBOSE_MODE=1 # Reserved for future use
-				export VERBOSE_MODE
-				shift
-				;;
-			pull)
-				cmd_pull
-				return 0
-				;;
-			build)
-				cmd_build
-				return 0
-				;;
-			up)
-				cmd_up
-				return 0
-				;;
-			down)
-				cmd_down
-				return 0
-				;;
-			clean)
-				cmd_clean
-				return 0
-				;;
-			*)
-				error "Unknown option: $1"
-				;;
+		-h | --help)
+			show_help
+			return 0
+			;;
+		-v | --version)
+			show_version
+			return 0
+			;;
+		-d | --debug)
+			DEBUG_MODE=1
+			shift
+			;;
+		--verbose)
+			VERBOSE_MODE=1 # Reserved for future use
+			export VERBOSE_MODE
+			shift
+			;;
+		pull)
+			cmd_pull
+			return 0
+			;;
+		build)
+			cmd_build
+			return 0
+			;;
+		up)
+			cmd_up
+			return 0
+			;;
+		down)
+			cmd_down
+			return 0
+			;;
+		clean)
+			cmd_clean
+			return 0
+			;;
+		*)
+			error "Unknown option: $1"
+			;;
 		esac
 	done
 
