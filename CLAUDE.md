@@ -29,7 +29,7 @@ ln -s $(pwd)/src/navarch ~/.local/bin/navarch
 shellcheck src/navarch
 
 # Format bash scripts
-shfmt -w src/navarch
+shfmt -w -ci src/navarch
 ```
 
 ## Architecture Overview
@@ -73,12 +73,17 @@ The entire CLI is implemented in `src/navarch` - a single Bash script that:
    git checkout -b work/claude/<feature-name>
    ```
 
-3. Push branch:
+3. Format code before push:
+   ```bash
+   shfmt -w -ci src/navarch
+   ```
+
+4. Push branch:
    ```bash
    git push -u origin work/claude/<feature-name>
    ```
 
-4. Create PR using GitHub MCP:
+5. Create PR using GitHub MCP:
    ```
    mcp__github__create_pull_request
    ```

@@ -110,6 +110,9 @@ define_directive_functions() {
 	ENV_LIST=""
 	VENDOR_LIST=""
 	CURRENT_LIST=""
+	# Directory lists for resolved paths
+	VENDOR_DIRS=""
+	CURRENT_DIRS=""
 
 	# Define env() function to collect environment files
 	env() {
@@ -122,14 +125,32 @@ define_directive_functions() {
 		fi
 	}
 
-	# Define vendor() function to collect GitHub dependencies
+	# Define vendor() function to collect GitHub dependencies (URLs for pulling)
 	vendor() {
 		local repo_url="$1"
 		debug "vendor() called with: $repo_url"
+
+		# Calculate future directory path
+		local parsed
+		parsed=$(parse_github_url "$repo_url")
+		local repo_name="${parsed%|*}"
+		local cache_dir="$PROJECT_ROOT/.cache"
+		local future_dir="$cache_dir/$repo_name"
+
+		debug "vendor() calculated directory: $future_dir"
+
+		# Add to URL list
 		if [[ -n "$VENDOR_LIST" ]]; then
 			VENDOR_LIST="$VENDOR_LIST $repo_url"
 		else
 			VENDOR_LIST="$repo_url"
+		fi
+
+		# Add to directory list
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			VENDOR_DIRS="$VENDOR_DIRS $future_dir"
+		else
+			VENDOR_DIRS="$future_dir"
 		fi
 	}
 
@@ -137,10 +158,20 @@ define_directive_functions() {
 	current() {
 		local local_path="$1"
 		debug "current() called with: $local_path"
+
+		# Resolve the path relative to the PROJECT_ROOT directory
+		local resolved_path
+		resolved_path=$(resolve_relative_path "$local_path" "$PROJECT_ROOT")
+
+		debug "current() resolved path: $resolved_path"
+
+		# Add to both lists - raw path for compatibility, resolved path for execution
 		if [[ -n "$CURRENT_LIST" ]]; then
 			CURRENT_LIST="$CURRENT_LIST $local_path"
+			CURRENT_DIRS="$CURRENT_DIRS $resolved_path"
 		else
 			CURRENT_LIST="$local_path"
+			CURRENT_DIRS="$resolved_path"
 		fi
 	}
 
@@ -272,6 +303,8 @@ source_atlas_navarch() {
 	debug "ENV_LIST: $ENV_LIST"
 	debug "VENDOR_LIST: $VENDOR_LIST"
 	debug "CURRENT_LIST: $CURRENT_LIST"
+	debug "VENDOR_DIRS: $VENDOR_DIRS"
+	debug "CURRENT_DIRS: $CURRENT_DIRS"
 }
 
 # Function execution engine
@@ -370,6 +403,7 @@ cmd_pull() {
 
 		if [[ -n "$CURRENT_LIST" ]]; then
 			log "INFO" "Current projects: $CURRENT_LIST"
+			log "INFO" "Current directories: $CURRENT_DIRS"
 		fi
 
 	else
