@@ -204,19 +204,21 @@ define_directive_functions() {
 		local task_file="$1"
 		debug "task() called with: $task_file"
 
-		# Resolve the path relative to the atlas.navarch file's directory
+		# Store the raw task file path and source directory for later resolution
+		# This avoids complex path operations during sourcing
 		local source_dir
 		source_dir="$(dirname "${BASH_SOURCE[1]}")"
-		local resolved_path
-		resolved_path=$(resolve_relative_path "$task_file" "$source_dir")
+		
+		# Store both the file path and source directory for later resolution
+		local task_entry="$task_file|$source_dir"
 
-		debug "task() resolved path: $resolved_path"
+		debug "task() storing entry: $task_entry"
 
-		# Add to task list
+		# Add to task list - we'll resolve paths later in load_tasks
 		if [[ -n "$TASK_LIST" ]]; then
-			TASK_LIST="$TASK_LIST $resolved_path"
+			TASK_LIST="$TASK_LIST $task_entry"
 		else
-			TASK_LIST="$resolved_path"
+			TASK_LIST="$task_entry"
 		fi
 	}
 
@@ -380,17 +382,32 @@ load_tasks() {
 	debug "TASK_LIST: $TASK_LIST"
 
 	if [[ -n "$TASK_LIST" ]]; then
-		for task_file in $TASK_LIST; do
-			if [[ -f "$task_file" ]]; then
-				debug "Loading task file: $task_file"
+		for task_entry in $TASK_LIST; do
+			# Parse the task entry (format: "file|source_dir")
+			local task_file="${task_entry%|*}"
+			local source_dir="${task_entry#*|}"
+			
+			# Resolve the actual file path
+			local resolved_path
+			if [[ "$task_file" = /* ]]; then
+				# Absolute path
+				resolved_path="$task_file"
+			else
+				# Relative path - resolve relative to source directory
+				resolved_path="$source_dir/$task_file"
+			fi
+			
+			debug "Loading task file: $resolved_path (from $task_file in $source_dir)"
+			
+			if [[ -f "$resolved_path" ]]; then
 				# shellcheck disable=SC1090
-				if ! source "$task_file"; then
-					warn "Failed to load task file: $task_file"
+				if ! source "$resolved_path"; then
+					warn "Failed to load task file: $resolved_path"
 				else
-					debug "Successfully loaded task file: $task_file"
+					debug "Successfully loaded task file: $resolved_path"
 				fi
 			else
-				warn "Task file not found: $task_file"
+				warn "Task file not found: $resolved_path"
 			fi
 		done
 	else
