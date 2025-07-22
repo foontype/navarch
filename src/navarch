@@ -419,11 +419,35 @@ cmd_build() {
 	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
 		log "INFO" "Found atlas.navarch: $atlas_file"
 
+		# Process the atlas.navarch file to get dependency directories
+		source_atlas_navarch "$atlas_file"
+
+		# Execute build function in vendor directories (in definition order)
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			for vendor_dir in $VENDOR_DIRS; do
+				local vendor_atlas="$vendor_dir/atlas.navarch"
+				if [[ -f "$vendor_atlas" ]]; then
+					execute_subcommand "build" "$vendor_atlas"
+				else
+					debug "No atlas.navarch found in vendor directory: $vendor_dir"
+				fi
+			done
+		fi
+
+		# Execute build function in current directories (in definition order)
+		if [[ -n "$CURRENT_DIRS" ]]; then
+			for current_dir in $CURRENT_DIRS; do
+				local current_atlas="$current_dir/atlas.navarch"
+				if [[ -f "$current_atlas" ]]; then
+					execute_subcommand "build" "$current_atlas"
+				else
+					debug "No atlas.navarch found in current directory: $current_dir"
+				fi
+			done
+		fi
+
 		# Execute build function in current project
 		execute_subcommand "build" "$atlas_file"
-
-		# TODO: Process vendor dependencies and execute their build functions
-		# TODO: Process current dependencies and execute their build functions
 
 	else
 		error "No atlas.navarch file found in current directory"
@@ -437,6 +461,33 @@ cmd_up() {
 	local atlas_file
 	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
 		log "INFO" "Found atlas.navarch: $atlas_file"
+
+		# Process the atlas.navarch file to get dependency directories
+		source_atlas_navarch "$atlas_file"
+
+		# Execute up function in vendor directories (in definition order)
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			for vendor_dir in $VENDOR_DIRS; do
+				local vendor_atlas="$vendor_dir/atlas.navarch"
+				if [[ -f "$vendor_atlas" ]]; then
+					execute_subcommand "up" "$vendor_atlas"
+				else
+					debug "No atlas.navarch found in vendor directory: $vendor_dir"
+				fi
+			done
+		fi
+
+		# Execute up function in current directories (in definition order)
+		if [[ -n "$CURRENT_DIRS" ]]; then
+			for current_dir in $CURRENT_DIRS; do
+				local current_atlas="$current_dir/atlas.navarch"
+				if [[ -f "$current_atlas" ]]; then
+					execute_subcommand "up" "$current_atlas"
+				else
+					debug "No atlas.navarch found in current directory: $current_dir"
+				fi
+			done
+		fi
 
 		# Execute up function in current project
 		execute_subcommand "up" "$atlas_file"
@@ -454,8 +505,43 @@ cmd_down() {
 	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
 		log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute down function in current project
+		# Process the atlas.navarch file to get dependency directories
+		source_atlas_navarch "$atlas_file"
+
+		# Execute down function in current project first
 		execute_subcommand "down" "$atlas_file"
+
+		# Execute down function in current directories (reverse order)
+		if [[ -n "$CURRENT_DIRS" ]]; then
+			# Convert space-separated string to array for reverse iteration
+			local -a current_dirs_array
+			read -ra current_dirs_array <<<"$CURRENT_DIRS"
+			for ((i = ${#current_dirs_array[@]} - 1; i >= 0; i--)); do
+				local current_dir="${current_dirs_array[i]}"
+				local current_atlas="$current_dir/atlas.navarch"
+				if [[ -f "$current_atlas" ]]; then
+					execute_subcommand "down" "$current_atlas"
+				else
+					debug "No atlas.navarch found in current directory: $current_dir"
+				fi
+			done
+		fi
+
+		# Execute down function in vendor directories (reverse order)
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			# Convert space-separated string to array for reverse iteration
+			local -a vendor_dirs_array
+			read -ra vendor_dirs_array <<<"$VENDOR_DIRS"
+			for ((i = ${#vendor_dirs_array[@]} - 1; i >= 0; i--)); do
+				local vendor_dir="${vendor_dirs_array[i]}"
+				local vendor_atlas="$vendor_dir/atlas.navarch"
+				if [[ -f "$vendor_atlas" ]]; then
+					execute_subcommand "down" "$vendor_atlas"
+				else
+					debug "No atlas.navarch found in vendor directory: $vendor_dir"
+				fi
+			done
+		fi
 
 	else
 		error "No atlas.navarch file found in current directory"
@@ -470,8 +556,43 @@ cmd_clean() {
 	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
 		log "INFO" "Found atlas.navarch: $atlas_file"
 
-		# Execute clean function in current project
+		# Process the atlas.navarch file to get dependency directories
+		source_atlas_navarch "$atlas_file"
+
+		# Execute clean function in current project first
 		execute_subcommand "clean" "$atlas_file"
+
+		# Execute clean function in current directories (reverse order)
+		if [[ -n "$CURRENT_DIRS" ]]; then
+			# Convert space-separated string to array for reverse iteration
+			local -a current_dirs_array
+			read -ra current_dirs_array <<<"$CURRENT_DIRS"
+			for ((i = ${#current_dirs_array[@]} - 1; i >= 0; i--)); do
+				local current_dir="${current_dirs_array[i]}"
+				local current_atlas="$current_dir/atlas.navarch"
+				if [[ -f "$current_atlas" ]]; then
+					execute_subcommand "clean" "$current_atlas"
+				else
+					debug "No atlas.navarch found in current directory: $current_dir"
+				fi
+			done
+		fi
+
+		# Execute clean function in vendor directories (reverse order)
+		if [[ -n "$VENDOR_DIRS" ]]; then
+			# Convert space-separated string to array for reverse iteration
+			local -a vendor_dirs_array
+			read -ra vendor_dirs_array <<<"$VENDOR_DIRS"
+			for ((i = ${#vendor_dirs_array[@]} - 1; i >= 0; i--)); do
+				local vendor_dir="${vendor_dirs_array[i]}"
+				local vendor_atlas="$vendor_dir/atlas.navarch"
+				if [[ -f "$vendor_atlas" ]]; then
+					execute_subcommand "clean" "$vendor_atlas"
+				else
+					debug "No atlas.navarch found in vendor directory: $vendor_dir"
+				fi
+			done
+		fi
 
 	else
 		error "No atlas.navarch file found in current directory"
