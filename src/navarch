@@ -208,7 +208,7 @@ define_directive_functions() {
 		# This avoids complex path operations during sourcing
 		local source_dir
 		source_dir="$(dirname "${BASH_SOURCE[1]}")"
-		
+
 		# Store both the file path and source directory for later resolution
 		local task_entry="$task_file|$source_dir"
 
@@ -344,6 +344,7 @@ source_atlas_navarch() {
 	# shellcheck disable=SC1090
 	if ! source "$atlas_file"; then
 		error "Failed to source atlas.navarch: $atlas_file"
+		return 1
 	fi
 
 	debug "Successfully sourced atlas.navarch"
@@ -351,8 +352,10 @@ source_atlas_navarch() {
 	debug "VENDOR_LIST: $VENDOR_LIST"
 	debug "CURRENT_LIST: $CURRENT_LIST"
 	debug "PLUGIN_LIST: $PLUGIN_LIST"
+	debug "TASK_LIST: $TASK_LIST"
 	debug "VENDOR_DIRS: $VENDOR_DIRS"
 	debug "CURRENT_DIRS: $CURRENT_DIRS"
+	return 0
 }
 
 load_plugins() {
@@ -386,7 +389,7 @@ load_tasks() {
 			# Parse the task entry (format: "file|source_dir")
 			local task_file="${task_entry%|*}"
 			local source_dir="${task_entry#*|}"
-			
+
 			# Resolve the actual file path
 			local resolved_path
 			if [[ "$task_file" = /* ]]; then
@@ -396,9 +399,9 @@ load_tasks() {
 				# Relative path - resolve relative to source directory
 				resolved_path="$source_dir/$task_file"
 			fi
-			
+
 			debug "Loading task file: $resolved_path (from $task_file in $source_dir)"
-			
+
 			if [[ -f "$resolved_path" ]]; then
 				# shellcheck disable=SC1090
 				if ! source "$resolved_path"; then
