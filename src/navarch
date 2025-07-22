@@ -486,46 +486,46 @@ main() {
 	# Parse command line arguments
 	while [[ $# -gt 0 ]]; do
 		case $1 in
-		-h | --help)
-			show_help
-			return 0
-			;;
-		-v | --version)
-			show_version
-			return 0
-			;;
-		-d | --debug)
-			DEBUG_MODE=1
-			shift
-			;;
-		--verbose)
-			VERBOSE_MODE=1 # Reserved for future use
-			export VERBOSE_MODE
-			shift
-			;;
-		pull)
-			cmd_pull
-			return 0
-			;;
-		build)
-			cmd_build
-			return 0
-			;;
-		up)
-			cmd_up
-			return 0
-			;;
-		down)
-			cmd_down
-			return 0
-			;;
-		clean)
-			cmd_clean
-			return 0
-			;;
-		*)
-			error "Unknown option: $1"
-			;;
+			-h | --help)
+				show_help
+				return 0
+				;;
+			-v | --version)
+				show_version
+				return 0
+				;;
+			-d | --debug)
+				DEBUG_MODE=1
+				shift
+				;;
+			--verbose)
+				VERBOSE_MODE=1 # Reserved for future use
+				export VERBOSE_MODE
+				shift
+				;;
+			pull)
+				cmd_pull
+				return 0
+				;;
+			build)
+				cmd_build
+				return 0
+				;;
+			up)
+				cmd_up
+				return 0
+				;;
+			down)
+				cmd_down
+				return 0
+				;;
+			clean)
+				cmd_clean
+				return 0
+				;;
+			*)
+				error "Unknown option: $1"
+				;;
 		esac
 	done
 
