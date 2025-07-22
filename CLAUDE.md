@@ -29,7 +29,7 @@ ln -s $(pwd)/src/navarch ~/.local/bin/navarch
 shellcheck src/navarch
 
 # Format bash scripts
-shfmt -w src/navarch
+shfmt -w -ci src/navarch
 ```
 
 ## Architecture Overview
