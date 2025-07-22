@@ -92,3 +92,100 @@ EOF
     result=$(parse_github_url "https://github.com/user/repo.git@v1.0.0")
     [[ "$result" == "user/repo|v1.0.0" ]]
 }
+
+@test "plugin directive loads external functions" {
+    # Create a plugin file
+    cat > test-plugin.sh << 'EOF'
+test_function() {
+    echo "Plugin function executed"
+}
+EOF
+
+    # Create atlas.navarch that uses the plugin
+    cat > atlas.navarch << 'EOF'
+plugin test-plugin.sh
+
+build() {
+    test_function
+    echo "Build completed"
+}
+EOF
+
+    run ./navarch build
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Plugin function executed"* ]]
+    [[ "$output" == *"Build completed"* ]]
+}
+
+@test "plugin with relative path resolution" {
+    # Create lib directory and plugin file
+    mkdir -p lib
+    cat > lib/helpers.sh << 'EOF'
+helper_function() {
+    echo "Helper function from lib"
+}
+EOF
+
+    # Create atlas.navarch that uses the plugin with relative path
+    cat > atlas.navarch << 'EOF'
+plugin lib/helpers.sh
+
+build() {
+    helper_function
+    echo "Build with helper completed"
+}
+EOF
+
+    run ./navarch build
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Helper function from lib"* ]]
+    [[ "$output" == *"Build with helper completed"* ]]
+}
+
+@test "plugin handles missing files gracefully" {
+    cat > atlas.navarch << 'EOF'
+plugin nonexistent-plugin.sh
+
+build() {
+    echo "Build without plugin"
+}
+EOF
+
+    run ./navarch build
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Plugin file not found"* ]]
+    [[ "$output" == *"Build without plugin"* ]]
+}
+
+@test "multiple plugins can be loaded" {
+    # Create multiple plugin files
+    cat > plugin1.sh << 'EOF'
+plugin1_function() {
+    echo "Plugin 1 executed"
+}
+EOF
+
+    cat > plugin2.sh << 'EOF'
+plugin2_function() {
+    echo "Plugin 2 executed"
+}
+EOF
+
+    # Create atlas.navarch that uses both plugins
+    cat > atlas.navarch << 'EOF'
+plugin plugin1.sh
+plugin plugin2.sh
+
+build() {
+    plugin1_function
+    plugin2_function
+    echo "Build with multiple plugins completed"
+}
+EOF
+
+    run ./navarch build
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Plugin 1 executed"* ]]
+    [[ "$output" == *"Plugin 2 executed"* ]]
+    [[ "$output" == *"Build with multiple plugins completed"* ]]
+}

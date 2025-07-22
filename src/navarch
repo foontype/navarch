@@ -110,6 +110,7 @@ define_directive_functions() {
 	ENV_LIST=""
 	VENDOR_LIST=""
 	CURRENT_LIST=""
+	PLUGIN_LIST=""
 	# Directory lists for resolved paths
 	VENDOR_DIRS=""
 	CURRENT_DIRS=""
@@ -172,6 +173,27 @@ define_directive_functions() {
 		else
 			CURRENT_LIST="$local_path"
 			CURRENT_DIRS="$resolved_path"
+		fi
+	}
+
+	# Define plugin() function to collect plugin files
+	plugin() {
+		local plugin_file="$1"
+		debug "plugin() called with: $plugin_file"
+
+		# Resolve the path relative to the atlas.navarch file's directory
+		local source_dir
+		source_dir="$(dirname "${BASH_SOURCE[1]}")"
+		local resolved_path
+		resolved_path=$(resolve_relative_path "$plugin_file" "$source_dir")
+
+		debug "plugin() resolved path: $resolved_path"
+
+		# Add to plugin list
+		if [[ -n "$PLUGIN_LIST" ]]; then
+			PLUGIN_LIST="$PLUGIN_LIST $resolved_path"
+		else
+			PLUGIN_LIST="$resolved_path"
 		fi
 	}
 
@@ -303,8 +325,31 @@ source_atlas_navarch() {
 	debug "ENV_LIST: $ENV_LIST"
 	debug "VENDOR_LIST: $VENDOR_LIST"
 	debug "CURRENT_LIST: $CURRENT_LIST"
+	debug "PLUGIN_LIST: $PLUGIN_LIST"
 	debug "VENDOR_DIRS: $VENDOR_DIRS"
 	debug "CURRENT_DIRS: $CURRENT_DIRS"
+}
+
+load_plugins() {
+	debug "Loading plugins"
+
+	if [[ -n "$PLUGIN_LIST" ]]; then
+		for plugin_file in $PLUGIN_LIST; do
+			if [[ -f "$plugin_file" ]]; then
+				debug "Loading plugin: $plugin_file"
+				# shellcheck disable=SC1090
+				if ! source "$plugin_file"; then
+					warn "Failed to load plugin: $plugin_file"
+				else
+					debug "Successfully loaded plugin: $plugin_file"
+				fi
+			else
+				warn "Plugin file not found: $plugin_file"
+			fi
+		done
+	else
+		debug "No plugins to load"
+	fi
 }
 
 # Function execution engine
@@ -422,6 +467,9 @@ cmd_build() {
 		# Process the atlas.navarch file to get dependency directories
 		source_atlas_navarch "$atlas_file"
 
+		# Load plugins before executing commands
+		load_plugins
+
 		# Execute build function in vendor directories (in definition order)
 		if [[ -n "$VENDOR_DIRS" ]]; then
 			for vendor_dir in $VENDOR_DIRS; do
@@ -465,6 +513,9 @@ cmd_up() {
 		# Process the atlas.navarch file to get dependency directories
 		source_atlas_navarch "$atlas_file"
 
+		# Load plugins before executing commands
+		load_plugins
+
 		# Execute up function in vendor directories (in definition order)
 		if [[ -n "$VENDOR_DIRS" ]]; then
 			for vendor_dir in $VENDOR_DIRS; do
@@ -507,6 +558,9 @@ cmd_down() {
 
 		# Process the atlas.navarch file to get dependency directories
 		source_atlas_navarch "$atlas_file"
+
+		# Load plugins before executing commands
+		load_plugins
 
 		# Execute down function in current project first
 		execute_subcommand "down" "$atlas_file"
@@ -558,6 +612,9 @@ cmd_clean() {
 
 		# Process the atlas.navarch file to get dependency directories
 		source_atlas_navarch "$atlas_file"
+
+		# Load plugins before executing commands
+		load_plugins
 
 		# Execute clean function in current project first
 		execute_subcommand "clean" "$atlas_file"
