@@ -11,6 +11,7 @@ A Bash-based single script CLI system for managing atlas.navarch configurations.
 - **Environment Management**: Load environment variables from specified files
 - **Local Dependencies**: Support for local project dependencies with `current` directives
 - **Plugin System**: Load external Bash functions from separate files with `plugin` directives
+- **Task System**: Execute custom tasks from external files with `task` directives
 - **Caching**: Intelligent caching of vendor repositories in `.cache` directory
 - **POSIX Compatible**: Works with standard Bash (version 4.0+)
 
@@ -69,6 +70,9 @@ navarch down
 
 # Execute clean functions (reverse order)
 navarch clean
+
+# Run custom task
+navarch run <task_name>
 ```
 
 ### atlas.navarch File Format
@@ -91,6 +95,10 @@ current ../shared-project
 # Plugin files with shared functions
 plugin lib/helpers.sh
 plugin scripts/database.sh
+
+# Task files with executable tasks
+task tasks/deploy.sh
+task tasks/maintenance.sh
 
 # Build function
 build() {
@@ -128,6 +136,9 @@ project/
 ├── lib/                   # Plugin files directory
 │   ├── helpers.sh         # Shared utility functions
 │   └── database.sh        # Database-related functions
+├── tasks/                 # Task files directory
+│   ├── deploy.sh          # Deployment tasks
+│   └── maintenance.sh     # Maintenance tasks
 ├── .cache/                # Vendor dependencies cache
 │   ├── user1/repo1/       # Cached repository
 │   └── user2/repo2/       # Another cached repository
@@ -194,6 +205,47 @@ build() {
     compile_assets  
     echo "Build complete"
 }
+```
+
+### task
+Load external task files containing functions that can be executed with `navarch run`. Unlike plugins, task functions are meant to be run directly as standalone commands.
+
+```bash
+task tasks/deploy.sh
+task tasks/maintenance.sh
+task ../shared/operations.sh
+```
+
+Task files contain functions that can be executed individually:
+
+```bash
+# tasks/deploy.sh
+deploy_staging() {
+    echo "Deploying to staging environment..."
+    docker build -t myapp:staging .
+    kubectl apply -f k8s/staging/
+    echo "Staging deployment complete"
+}
+
+deploy_production() {
+    echo "Deploying to production..."
+    docker build -t myapp:prod .
+    kubectl apply -f k8s/production/
+    echo "Production deployment complete"
+}
+
+rollback_production() {
+    echo "Rolling back production deployment..."
+    kubectl rollout undo deployment/myapp
+}
+```
+
+Execute these tasks with the `run` command:
+
+```bash
+navarch run deploy_staging
+navarch run deploy_production  
+navarch run rollback_production
 ```
 
 ## Testing
