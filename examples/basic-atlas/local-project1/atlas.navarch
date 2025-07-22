@@ -1,0 +1,17 @@
+# Local project atlas.navarch
+
+build() {
+    echo "Building local project1"
+}
+
+up() {
+    echo "Starting local project1"
+}
+
+down() {
+    echo "Stopping local project1"
+}
+
+clean() {
+    echo "Cleaning local project1"
+}
