@@ -5,10 +5,12 @@ env .env.local
 
 vendor https://github.com/octocat/Hello-World.git
 
+current ./local-plugin1
 current ./local-project1
 
 build() {
     echo "Building main project"
+    local_plugin1_function
 }
 
 up() {

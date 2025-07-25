@@ -5,4 +5,5 @@
 .vscode/
 examples/basic-atlas/*
 !examples/basic-atlas/atlas.navarch
+!examples/basic-atlas/local-plugin1/
 !examples/basic-atlas/local-project1/
