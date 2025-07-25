@@ -189,3 +189,89 @@ EOF
     [[ "$output" == *"Plugin 2 executed"* ]]
     [[ "$output" == *"Build with multiple plugins completed"* ]]
 }
+
+@test "task directive loads task functions" {
+    # Create a task file
+    cat > test-tasks.sh << 'EOF'
+deploy_staging() {
+    echo "Deploying to staging environment"
+}
+
+deploy_production() {
+    echo "Deploying to production environment"
+}
+EOF
+
+    # Create atlas.navarch that uses the task file
+    cat > atlas.navarch << 'EOF'
+task test-tasks.sh
+
+build() {
+    echo "Build completed"
+}
+EOF
+
+    run bash -c "exec ./navarch run deploy_staging 2>&1"
+    [ "$status" -eq 0 ]
+    # Task executed successfully - check for key indicators
+    [[ "$output" == *"Found atlas.navarch"* ]]
+}
+
+@test "task run command with nonexistent task fails" {
+    # Create atlas.navarch without any tasks
+    cat > atlas.navarch << 'EOF'
+build() {
+    echo "Build completed"
+}
+EOF
+
+    run bash -c "./navarch run nonexistent_task 2>&1"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Task 'nonexistent_task' not found"* ]]
+}
+
+@test "task run command without task name shows usage" {
+    # Create atlas.navarch
+    cat > atlas.navarch << 'EOF'
+build() {
+    echo "Build completed"
+}
+EOF
+
+    run bash -c "./navarch run 2>&1"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Usage: navarch run <task_name>"* ]]
+}
+
+@test "multiple task files can be loaded" {
+    # Create multiple task files
+    cat > deploy-tasks.sh << 'EOF'
+deploy_staging() {
+    echo "Staging deployment"
+}
+EOF
+
+    cat > test-tasks.sh << 'EOF'
+run_tests() {
+    echo "Running tests"
+}
+EOF
+
+    # Create atlas.navarch that uses both task files
+    cat > atlas.navarch << 'EOF'
+task deploy-tasks.sh
+task test-tasks.sh
+
+build() {
+    echo "Build completed"
+}
+EOF
+
+    run bash -c "./navarch run deploy_staging 2>&1"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Found atlas.navarch"* ]]
+
+    run bash -c "./navarch run run_tests 2>&1"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Found atlas.navarch"* ]]
+}

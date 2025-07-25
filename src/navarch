@@ -2,6 +2,7 @@
 
 # NAVARCH CLI System
 # A Bash-based single script CLI system for managing atlas.navarch configurations
+# shellcheck disable=SC2317
 
 # Global variables
 NAVARCH_VERSION="0.0.1"
@@ -111,6 +112,7 @@ define_directive_functions() {
 	VENDOR_LIST=""
 	CURRENT_LIST=""
 	PLUGIN_LIST=""
+	TASK_LIST=""
 	# Directory lists for resolved paths
 	VENDOR_DIRS=""
 	CURRENT_DIRS=""
@@ -194,6 +196,29 @@ define_directive_functions() {
 			PLUGIN_LIST="$PLUGIN_LIST $resolved_path"
 		else
 			PLUGIN_LIST="$resolved_path"
+		fi
+	}
+
+	# Define task() function to collect task files
+	task() {
+		local task_file="$1"
+		debug "task() called with: $task_file"
+
+		# Store the raw task file path and source directory for later resolution
+		# This avoids complex path operations during sourcing
+		local source_dir
+		source_dir="$(dirname "${BASH_SOURCE[1]}")"
+
+		# Store both the file path and source directory for later resolution
+		local task_entry="$task_file|$source_dir"
+
+		debug "task() storing entry: $task_entry"
+
+		# Add to task list - we'll resolve paths later in load_tasks
+		if [[ -n "$TASK_LIST" ]]; then
+			TASK_LIST="$TASK_LIST $task_entry"
+		else
+			TASK_LIST="$task_entry"
 		fi
 	}
 
@@ -319,6 +344,7 @@ source_atlas_navarch() {
 	# shellcheck disable=SC1090
 	if ! source "$atlas_file"; then
 		error "Failed to source atlas.navarch: $atlas_file"
+		return 1
 	fi
 
 	debug "Successfully sourced atlas.navarch"
@@ -326,8 +352,10 @@ source_atlas_navarch() {
 	debug "VENDOR_LIST: $VENDOR_LIST"
 	debug "CURRENT_LIST: $CURRENT_LIST"
 	debug "PLUGIN_LIST: $PLUGIN_LIST"
+	debug "TASK_LIST: $TASK_LIST"
 	debug "VENDOR_DIRS: $VENDOR_DIRS"
 	debug "CURRENT_DIRS: $CURRENT_DIRS"
+	return 0
 }
 
 load_plugins() {
@@ -349,6 +377,44 @@ load_plugins() {
 		done
 	else
 		debug "No plugins to load"
+	fi
+}
+
+load_tasks() {
+	debug "Loading tasks"
+	debug "TASK_LIST: $TASK_LIST"
+
+	if [[ -n "$TASK_LIST" ]]; then
+		for task_entry in $TASK_LIST; do
+			# Parse the task entry (format: "file|source_dir")
+			local task_file="${task_entry%|*}"
+			local source_dir="${task_entry#*|}"
+
+			# Resolve the actual file path
+			local resolved_path
+			if [[ "$task_file" = /* ]]; then
+				# Absolute path
+				resolved_path="$task_file"
+			else
+				# Relative path - resolve relative to source directory
+				resolved_path="$source_dir/$task_file"
+			fi
+
+			debug "Loading task file: $resolved_path (from $task_file in $source_dir)"
+
+			if [[ -f "$resolved_path" ]]; then
+				# shellcheck disable=SC1090
+				if ! source "$resolved_path"; then
+					warn "Failed to load task file: $resolved_path"
+				else
+					debug "Successfully loaded task file: $resolved_path"
+				fi
+			else
+				warn "Task file not found: $resolved_path"
+			fi
+		done
+	else
+		debug "No tasks to load"
 	fi
 }
 
@@ -602,6 +668,49 @@ cmd_down() {
 	fi
 }
 
+cmd_run() {
+	local task_name="$1"
+	debug "Starting run command for task: $task_name"
+
+	if [[ -z "$task_name" ]]; then
+		error "Task name is required"
+		return 1
+	fi
+
+	# Find atlas.navarch file
+	local atlas_file
+	if atlas_file=$(find_atlas_navarch "$PROJECT_ROOT"); then
+		log "INFO" "Found atlas.navarch: $atlas_file"
+
+		# Process the atlas.navarch file
+		if ! source_atlas_navarch "$atlas_file"; then
+			return 1
+		fi
+
+		# Load task files
+		load_tasks
+
+		# Check if the specified task function exists
+		if ! declare -f "$task_name" >/dev/null 2>&1; then
+			error "Task '$task_name' not found"
+			return 1
+		fi
+
+		log "INFO" "Running task: $task_name"
+
+		# Execute the task
+		if ! "$task_name"; then
+			error "Task '$task_name' failed"
+			return 1
+		fi
+
+		log "INFO" "Task '$task_name' completed successfully"
+	else
+		error "No atlas.navarch file found in current directory"
+		return 1
+	fi
+}
+
 cmd_clean() {
 	debug "Starting clean command"
 
@@ -701,6 +810,15 @@ main() {
 				cmd_clean
 				return 0
 				;;
+			run)
+				shift # Remove 'run' from arguments
+				if [[ $# -eq 0 ]]; then
+					error "Usage: navarch run <task_name>"
+					return 1
+				fi
+				cmd_run "$1"
+				return $?
+				;;
 			*)
 				error "Unknown option: $1"
 				;;
@@ -715,4 +833,5 @@ main() {
 # Execute main function if script is run directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	main "$@"
+	exit $?
 fi
