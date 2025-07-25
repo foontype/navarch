@@ -31,6 +31,9 @@
   ],
   "postCreateCommand": ".devcontainer/post-create-command.sh",
   "remoteUser": "vscode",
+  "remoteEnv": {
+    "PATH": "/workspaces/navarch/src:${containerEnv:PATH}"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
