@@ -10,6 +10,10 @@ DEBUG_MODE=0
 VERBOSE_MODE=0
 PROJECT_ROOT=""
 
+# Recursive sourcing tracking
+declare -a SOURCED_FILES
+MAX_RECURSION_DEPTH=10
+
 # Logging and error handling utilities
 log() {
 	local level="$1"
@@ -332,22 +336,62 @@ clone_fresh_repository() {
 	fi
 }
 
-source_atlas_navarch() {
-	local atlas_file="$1"
+# Check if a file has already been sourced (to prevent cycles)
+is_already_sourced() {
+	local file_path="$1"
+	local normalized_path
+	normalized_path=$(normalize_path "$file_path")
 
-	debug "Sourcing atlas.navarch: $atlas_file"
+	local sourced_file
+	for sourced_file in "${SOURCED_FILES[@]}"; do
+		if [[ "$sourced_file" == "$normalized_path" ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+# Add file to sourced files list
+mark_as_sourced() {
+	local file_path="$1"
+	local normalized_path
+	normalized_path=$(normalize_path "$file_path")
+	SOURCED_FILES+=("$normalized_path")
+}
+
+# Recursive atlas.navarch sourcing function
+source_atlas_navarch_recursive() {
+	local atlas_file="$1"
+	local depth="${2:-0}"
+
+	debug "Recursive sourcing (depth $depth): $atlas_file"
+
+	# Check recursion depth
+	if [[ $depth -ge $MAX_RECURSION_DEPTH ]]; then
+		warn "Maximum recursion depth ($MAX_RECURSION_DEPTH) reached for: $atlas_file"
+		return 1
+	fi
+
+	# Check for cycles
+	if is_already_sourced "$atlas_file"; then
+		debug "Already sourced, skipping: $atlas_file"
+		return 0
+	fi
+
+	# Mark as sourced
+	mark_as_sourced "$atlas_file"
 
 	# Define directive functions before sourcing
 	define_directive_functions
 
-	# Source the atlas.navarch file in a subshell to isolate it
+	# Source the atlas.navarch file
 	# shellcheck disable=SC1090
 	if ! source "$atlas_file"; then
 		error "Failed to source atlas.navarch: $atlas_file"
 		return 1
 	fi
 
-	debug "Successfully sourced atlas.navarch"
+	debug "Successfully sourced atlas.navarch at depth $depth"
 	debug "ENV_LIST: $ENV_LIST"
 	debug "VENDOR_LIST: $VENDOR_LIST"
 	debug "CURRENT_LIST: $CURRENT_LIST"
@@ -355,6 +399,53 @@ source_atlas_navarch() {
 	debug "TASK_LIST: $TASK_LIST"
 	debug "VENDOR_DIRS: $VENDOR_DIRS"
 	debug "CURRENT_DIRS: $CURRENT_DIRS"
+
+	# Load plugins from current file
+	load_plugins
+
+	# Recursively source vendor dependencies
+	if [[ -n "$VENDOR_DIRS" ]]; then
+		local vendor_dir
+		for vendor_dir in $VENDOR_DIRS; do
+			local vendor_atlas="$vendor_dir/atlas.navarch"
+			if [[ -f "$vendor_atlas" ]]; then
+				debug "Recursively sourcing vendor atlas: $vendor_atlas"
+				source_atlas_navarch_recursive "$vendor_atlas" $((depth + 1))
+			else
+				debug "No atlas.navarch found in vendor directory: $vendor_dir"
+			fi
+		done
+	fi
+
+	# Recursively source current dependencies
+	if [[ -n "$CURRENT_DIRS" ]]; then
+		local current_dir
+		for current_dir in $CURRENT_DIRS; do
+			local current_atlas="$current_dir/atlas.navarch"
+			if [[ -f "$current_atlas" ]]; then
+				debug "Recursively sourcing current atlas: $current_atlas"
+				source_atlas_navarch_recursive "$current_atlas" $((depth + 1))
+			else
+				debug "No atlas.navarch found in current directory: $current_dir"
+			fi
+		done
+	fi
+
+	return 0
+}
+
+source_atlas_navarch() {
+	local atlas_file="$1"
+
+	debug "Starting atlas.navarch sourcing: $atlas_file"
+
+	# Reset sourced files tracking
+	SOURCED_FILES=()
+
+	# Use recursive sourcing
+	source_atlas_navarch_recursive "$atlas_file" 0
+
+	debug "Completed atlas.navarch sourcing"
 	return 0
 }
 
