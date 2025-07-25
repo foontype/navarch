@@ -1,5 +1,7 @@
 # Local project atlas.navarch
 
+task ./task.sh
+
 build() {
     echo "Building local project1"
 }
