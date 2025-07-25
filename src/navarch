@@ -489,6 +489,9 @@ cmd_pull() {
 		# Process the atlas.navarch file
 		source_atlas_navarch "$atlas_file"
 
+		# Load plugins
+		load_plugins
+
 		# Show what we collected
 		if [[ -n "$ENV_LIST" ]]; then
 			log "INFO" "Environment files: $ENV_LIST"
@@ -686,6 +689,9 @@ cmd_run() {
 		if ! source_atlas_navarch "$atlas_file"; then
 			return 1
 		fi
+
+		# Load plugins
+		load_plugins
 
 		# Load task files
 		load_tasks
