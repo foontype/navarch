@@ -28,3 +28,54 @@
   ```
 
   This is the foundational release establishing the core architecture and functionality of NAVARCH.
+
+"v0.0.2": |
+  Plugin system implementation and developer experience improvements.
+
+  ## New Features
+  - **Plugin System**
+    - Added `plugin` directive for loading external bash functions
+    - Added `task` directive for executing external task files
+    - Recursive atlas.navarch sourcing with cycle prevention
+    - Plugin execution support in vendor and current directories
+  
+  - **Developer Experience**
+    - Added navarch to PATH in devcontainer for easier development
+    - Added language guidelines (Japanese for chat, English for code)
+    - Improved VS Code settings with disabled compact folders
+
+  ## Improvements
+  - Enhanced example configurations with task directive and sample plugins
+  - Better path resolution for task directives
+  - Improved exit code propagation throughout the system
+  - Refactored vendor directory calculation for better performance
+  - Track dependency directories instead of URLs/paths
+
+  ## Bug Fixes
+  - Fixed task directive implementation for proper loading and execution
+  - Fixed workflow badge reference in documentation
+  - Resolved ShellCheck warnings for better code quality
+  - Fixed switch case indentation with proper formatting
+
+  ## Code Quality
+  - Applied consistent code formatting with shfmt
+  - Added formatting guidelines to documentation
+  - Improved error handling and logging
+
+  ## Examples
+  ### Using the plugin directive
+  ```bash
+  # In atlas.navarch
+  plugin ./plugins/my-functions.sh
+  ```
+
+  ### Using the task directive  
+  ```bash
+  # In atlas.navarch
+  task ./tasks/deploy.sh
+  
+  # Execute the task
+  navarch run deploy
+  ```
+
+  Fully backward compatible with v0.0.1 configurations.

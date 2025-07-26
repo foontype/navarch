@@ -5,7 +5,7 @@
 # shellcheck disable=SC2317
 
 # Global variables
-NAVARCH_VERSION="0.0.1"
+NAVARCH_VERSION="0.0.2"
 DEBUG_MODE=0
 VERBOSE_MODE=0
 PROJECT_ROOT=""
