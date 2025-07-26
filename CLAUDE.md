@@ -95,6 +95,31 @@ The entire CLI is implemented in `src/navarch` - a single Bash script that:
    mcp__github__create_pull_request
    ```
 
+### Creating Releases
+1. Add release notes to `release-notes.yml`:
+   ```yaml
+   "v0.0.3": |
+     Brief description of changes.
+     
+     ## New Features
+     - Feature 1
+     - Feature 2
+     
+     ## Bug Fixes
+     - Fix 1
+   ```
+
+2. Create and push tag:
+   ```bash
+   git tag v0.0.3
+   git push origin v0.0.3
+   ```
+
+3. GitHub Actions automatically creates release:
+   - `.github/workflows/release.yml` triggers on tag push
+   - Extracts release notes from `release-notes.yml`
+   - Creates GitHub Release with ZIP package
+
 ## Development Environment
 - DevContainer with Ubuntu, Bash, Go, Node.js
 - Pre-installed: BATS, ShellCheck, shfmt

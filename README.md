@@ -20,13 +20,13 @@ A Bash-based single script CLI system for managing atlas.navarch configurations.
 ### Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-org/navarch/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/foontype/navarch/main/install.sh | bash
 ```
 
 ### Manual Install
 
 ```bash
-git clone https://github.com/your-org/navarch.git
+git clone https://github.com/foontype/navarch.git
 cd navarch
 ./install.sh
 ```
@@ -35,7 +35,7 @@ cd navarch
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/navarch.git
+git clone https://github.com/foontype/navarch.git
 cd navarch
 
 # Make the script executable
