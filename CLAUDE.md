@@ -5,6 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 NAVARCH is a Bash-based single script CLI system for managing project dependencies and configurations. It uses `atlas.navarch` files to define dependencies and lifecycle functions (build, up, down, clean).
 
+## Language Guidelines
+- **Chat responses**: 日本語で応答してください (Respond in Japanese)
+- **Code comments and commit messages**: Must be written in English
+
 ## Essential Commands
 
 ### Testing
@@ -59,6 +63,9 @@ The entire CLI is implemented in `src/navarch` - a single Bash script that:
 - Tests validate both exit codes and output
 
 ## Git Workflow
+
+### Language Convention
+**All commit messages and code comments must be written in English.**
 
 ### Creating Pull Requests
 **IMPORTANT: Never push directly to main branch. Always use feature branches.**
